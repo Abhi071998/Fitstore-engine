@@ -1,0 +1,23 @@
+# 🔒 Environment Secrets (CRITICAL)
+.env
+.env.local
+# 🐹 Go/Golang Compilation Binaries
+bin/
+dist/
+main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# 📂 IDE / OS System Specific Files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store
+Thumbs.db
