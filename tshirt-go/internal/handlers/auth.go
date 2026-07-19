@@ -3,9 +3,11 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"tshirt-store/internal/models"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -14,6 +16,13 @@ import (
 type AuthHandler struct {
 	DB        *gorm.DB
 	JWTSecret []byte
+}
+
+// Custom claims structure for our JWT payload
+type JwtCustomClaims struct {
+	UserID uint   `json:"user_id"`
+	Email  string `json:"email"`
+	jwt.RegisteredClaims
 }
 
 // POST /api/auth/signup
@@ -44,7 +53,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 
 	// 4. Securely encrypt/hash raw password characters via Bcrypt
 	log.Println("🔑 [AUTH-HANDLER] Encrypting password safety signatures via Bcrypt...")
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), 12) // 12 cost factor provides secure production balancing
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), 12)
 	if err != nil {
 		log.Printf("🚨 [AUTH-HANDLER] Crypto processing failed entirely: %v", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to safely process account credentials"})
@@ -66,7 +75,6 @@ func (h *AuthHandler) Register(c echo.Context) error {
 
 	log.Printf("🎉 [AUTH-HANDLER] Success! Account for %s created cleanly with User ID #%d.", newUser.Email, newUser.ID)
 
-	// Send clean response back (User struct automatically hides the password field because of the JSON tag `json:"-"`)
 	return c.JSON(http.StatusCreated, map[string]interface{}{
 		"message": "Registration successful!",
 		"user":    newUser,
@@ -75,6 +83,63 @@ func (h *AuthHandler) Register(c echo.Context) error {
 
 // POST /api/auth/login
 func (h *AuthHandler) Login(c echo.Context) error {
-	// We'll implement the JWT creation token logic right after validating signup works!
-	return c.JSON(http.StatusNotImplemented, map[string]string{"message": "Login logic coming up next"})
+	log.Println("📥 [AUTH-HANDLER] Received incoming user authentication request...")
+
+	// 1. Bind incoming JSON request body straight into a LoginDTO
+	dto := new(models.LoginDTO)
+	if err := c.Bind(dto); err != nil {
+		log.Printf("❌ [AUTH-HANDLER] Login failed: Payload structural binding fault: %v", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payload format"})
+	}
+
+	// 2. Validate input fields are not empty
+	if dto.Email == "" || dto.Password == "" {
+		log.Println("❌ [AUTH-HANDLER] Login failed: Missing critical authentication fields.")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Email and password are required"})
+	}
+
+	// 3. Look up user by email in the database
+	var user models.User
+	result := h.DB.Where("email = ?", dto.Email).First(&user)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			log.Printf("⚠️ [AUTH-HANDLER] Login rejected: Account email %s not found.", dto.Email)
+		} else {
+			log.Printf("🚨 [AUTH-HANDLER] DB error during login lookup: %v", result.Error)
+		}
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid email or password"})
+	}
+
+	// 4. Compare incoming raw password with the hashed password stored in the DB
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
+	if err != nil {
+		log.Printf("⚠️ [AUTH-HANDLER] Login rejected: Incorrect password signature for %s.", dto.Email)
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid email or password"})
+	}
+
+	// 5. Build JWT claims (token payload) containing User ID and expiration rule
+	claims := &JwtCustomClaims{
+		UserID: user.ID,
+		Email:  user.Email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)), // Token lasts for 3 days
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	// 6. Generate the signed token using your secret key
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(h.JWTSecret)
+	if err != nil {
+		log.Printf("🚨 [AUTH-HANDLER] Token signing mechanism failed: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to issue authentication signatures"})
+	}
+
+	log.Printf("🎉 [AUTH-HANDLER] Success! User %s verified. Issuing secure JWT authorization token.", user.Email)
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Login successful!",
+		"token":   signedToken,
+		"user":    user,
+	})
 }

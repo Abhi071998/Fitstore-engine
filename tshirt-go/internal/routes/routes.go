@@ -10,7 +10,9 @@ import (
 )
 
 // SetupRoutes acts as the master map for all API endpoints in the application
-func SetupRoutes(e *echo.Echo, authHandler *handlers.AuthHandler) {
+func SetupRoutes(e *echo.Echo, authHandler *handlers.AuthHandler,
+	// productHandler *handlers.ProductHandler,
+	categoryHandler *handlers.CategoryHandler) {
 	log.Println("🗺️  [ROUTES] Registering application route mappings...")
 
 	// 1. Core System Infrastructure Endpoints
@@ -30,9 +32,24 @@ func SetupRoutes(e *echo.Echo, authHandler *handlers.AuthHandler) {
 		authGroup.POST("/login", authHandler.Login)
 	}
 
-	// You can easily add product groups here later without ever touching main.go again:
-	// productGroup := e.Group("/api/products")
-	// ...
+	// =========================================================================
+	// 🆕 ADDED SECTION: Category Routing Blueprint
+	// =========================================================================
+	categoryGroup := e.Group("/api/categories")
+	{
+		log.Println("📁 [ROUTES] Binding category configuration routes...")
+		categoryGroup.POST("createCategory", categoryHandler.CreateCategory)
+		categoryGroup.GET("getAllCategories", categoryHandler.GetAllCategories)
+	}
 
+	// =========================================================================
+	// 🆕 ADDED SECTION: Product Routing Blueprint
+	// =========================================================================
+	// productGroup := e.Group("/api/products")
+	// {
+	// 	log.Println("👕 [ROUTES] Binding product core routes...")
+	// 	productGroup.POST("createProduct", productHandler.CreateProduct)
+	// 	productGroup.GET("getAllProducts", productHandler.GetAllProducts)
+	// }
 	log.Println("✅ [ROUTES] All backend network endpoints mapped successfully.")
 }

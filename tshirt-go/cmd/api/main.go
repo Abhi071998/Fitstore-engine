@@ -7,7 +7,7 @@ import (
 	"tshirt-store/internal/db"
 	"tshirt-store/internal/handlers"
 	"tshirt-store/internal/models"
-	"tshirt-store/internal/routes" // 👈 Import your new routes package
+	"tshirt-store/internal/routes"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -44,9 +44,11 @@ func main() {
 		DB:        database,
 		JWTSecret: []byte(cfg.JWTSecret),
 	}
+	// productHandler := &handlers.ProductHandler{DB: db}
+	categoryHandler := &handlers.CategoryHandler{DB: database}
 
 	// 6. 🔥 CALL THE ROUTE MAPPER (This completely replaces the old route code)
-	routes.SetupRoutes(e, authHandler)
+	routes.SetupRoutes(e, authHandler, categoryHandler)
 
 	// 7. Bind listener loops onto target network port parameters
 	log.Printf("🏁 [MAIN] System baseline startup complete. Opening listeners at address: 0.0.0.0:%s", cfg.Port)
