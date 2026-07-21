@@ -38,8 +38,8 @@ func SetupRoutes(e *echo.Echo, authHandler *handlers.AuthHandler,
 	categoryGroup := e.Group("/api/categories")
 	{
 		log.Println("📁 [ROUTES] Binding category configuration routes...")
-		categoryGroup.POST("createCategory", categoryHandler.CreateCategory)
-		categoryGroup.GET("getAllCategories", categoryHandler.GetAllCategories)
+		categoryGroup.POST("/createCategory", categoryHandler.CreateCategory)
+		categoryGroup.GET("/getAllCategories", categoryHandler.GetAllCategories)
 	}
 
 	// =========================================================================
