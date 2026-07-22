@@ -44,11 +44,11 @@ func main() {
 		DB:        database,
 		JWTSecret: []byte(cfg.JWTSecret),
 	}
-	// productHandler := &handlers.ProductHandler{DB: db}
+	productHandler := &handlers.ProductHandler{DB: database}
 	categoryHandler := &handlers.CategoryHandler{DB: database}
 
 	// 6. 🔥 CALL THE ROUTE MAPPER (This completely replaces the old route code)
-	routes.SetupRoutes(e, authHandler, categoryHandler, []byte(cfg.JWTSecret))
+	routes.SetupRoutes(e, authHandler, productHandler, categoryHandler, []byte(cfg.JWTSecret))
 
 	// 7. Bind listener loops onto target network port parameters
 	log.Printf("🏁 [MAIN] System baseline startup complete. Opening listeners at address: 0.0.0.0:%s", cfg.Port)

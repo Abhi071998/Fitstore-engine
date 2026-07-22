@@ -14,7 +14,7 @@ import (
 func SetupRoutes(
 	e *echo.Echo,
 	authHandler *handlers.AuthHandler,
-	// productHandler *handlers.ProductHandler,
+	productHandler *handlers.ProductHandler,
 	categoryHandler *handlers.CategoryHandler,
 	jwtSecret []byte, // Injected secret key for token verification
 ) {
@@ -54,15 +54,15 @@ func SetupRoutes(
 	}
 
 	// 4. Product Routing Blueprint
-	// productGroup := e.Group("/api/products")
-	// {
-	// 	log.Println("👕 [ROUTES] Binding product core routes...")
-	// 	// 🌐 Public: Anyone can view products
-	// 	productGroup.GET("/getAllProducts", productHandler.GetAllProducts)
+	productGroup := e.Group("/api/products")
+	{
+		log.Println("👕 [ROUTES] Binding product core routes...")
+		// 🌐 Public: Anyone can view products
+		productGroup.GET("/getAllProducts", productHandler.GetAllProducts)
 
-	// 	// 🔒 Protected: Requires a valid Bearer token signature
-	// 	productGroup.POST("/createProduct", productHandler.CreateProduct, authRequired)
-	// }
+		// 🔒 Protected: Requires a valid Bearer token signature
+		productGroup.POST("/createProduct", productHandler.CreateProduct, authRequired)
+	}
 
 	log.Println("✅ [ROUTES] All backend network endpoints mapped successfully.")
 }
