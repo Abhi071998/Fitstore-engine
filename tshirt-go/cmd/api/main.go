@@ -24,7 +24,7 @@ func main() {
 
 	// 3. Sync structural tables via ORM AutoMigration
 	log.Println("🔄 [MIGRATION] Scanning entity mappings for auto-migration...")
-	err := database.AutoMigrate(&models.User{}, &models.Product{})
+	err := database.AutoMigrate(&models.User{}, &models.Product{}, &models.ProductSize{}, &models.Category{})
 	if err != nil {
 		log.Fatalf("🚨 [MIGRATION] Schema sync failed! System shutting down. Trace: %v", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"tshirt-store/internal/models"
 
 	"github.com/labstack/echo/v4"
@@ -81,4 +82,32 @@ func (h *ProductHandler) GetAllProducts(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch catalog products"})
 	}
 	return c.JSON(http.StatusOK, products)
+}
+
+// DELETE /api/products/deleteProduct/:id (Protected)
+func (h *ProductHandler) DeleteProduct(c echo.Context) error {
+	idParam := c.Param("id")
+	productID, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid product ID format"})
+	}
+
+	// 1. Check if product exists
+	var product models.Product
+	if err := h.DB.First(&product, productID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "Product not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Database lookup failed"})
+	}
+
+	// 2. Perform soft-delete (GORM handles cascading soft-deletes or flags deleted_at)
+	if err := h.DB.Delete(&product).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete product"})
+	}
+
+	log.Printf("🗑️ [PRODUCT-HANDLER] Product ID #%d deleted successfully", productID)
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Product deleted successfully",
+	})
 }

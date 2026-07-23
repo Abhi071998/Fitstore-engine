@@ -62,6 +62,7 @@ func SetupRoutes(
 
 		// 🔒 Protected: Requires a valid Bearer token signature
 		productGroup.POST("/createProduct", productHandler.CreateProduct, authRequired)
+		productGroup.DELETE("/deleteProduct/:id", productHandler.DeleteProduct, authRequired)
 	}
 
 	log.Println("✅ [ROUTES] All backend network endpoints mapped successfully.")
