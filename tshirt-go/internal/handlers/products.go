@@ -84,6 +84,16 @@ func (h *ProductHandler) GetAllProducts(c echo.Context) error {
 	return c.JSON(http.StatusOK, products)
 }
 
+// GET /api/products/updateProduct/:id (Protected)
+//
+//	func (h *ProductHandler) UpdateProduct(c echo.Context) error{
+//		idParam := c.Param("id")
+//		productID, err := strconv.ParseUint(idParam, 10, 32)
+//		if err != nil {
+//			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid product ID format"})
+//		}
+//	}
+//
 // DELETE /api/products/deleteProduct/:id (Protected)
 func (h *ProductHandler) DeleteProduct(c echo.Context) error {
 	idParam := c.Param("id")
@@ -92,7 +102,7 @@ func (h *ProductHandler) DeleteProduct(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid product ID format"})
 	}
 
-	// 1. Check if product exists
+	// 1. Check if product exists (include Unscoped so we find it regardless)
 	var product models.Product
 	if err := h.DB.First(&product, productID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -101,13 +111,25 @@ func (h *ProductHandler) DeleteProduct(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Database lookup failed"})
 	}
 
-	// 2. Perform soft-delete (GORM handles cascading soft-deletes or flags deleted_at)
-	if err := h.DB.Delete(&product).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete product"})
+	// 2. Use Unscoped() + Transaction to permanently delete Product AND its Size variants
+	tx := h.DB.Begin()
+
+	// Delete child size variants permanently
+	if err := tx.Unscoped().Where("product_id = ?", product.ID).Delete(&models.ProductSize{}).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete size inventory"})
 	}
 
-	log.Printf("🗑️ [PRODUCT-HANDLER] Product ID #%d deleted successfully", productID)
+	// Delete primary product permanently
+	if err := tx.Unscoped().Delete(&product).Error; err != nil {
+		tx.Rollback()
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete product record"})
+	}
+
+	tx.Commit()
+
+	log.Printf("💥 [PRODUCT-HANDLER] Product ID #%d and its variants PERMANENTLY deleted from DB", productID)
 	return c.JSON(http.StatusOK, map[string]string{
-		"message": "Product deleted successfully",
+		"message": "Product permanently deleted from database",
 	})
 }
