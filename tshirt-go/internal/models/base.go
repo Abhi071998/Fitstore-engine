@@ -38,6 +38,7 @@ type LoginDTO struct {
 type Category struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	Name      string         `gorm:"unique;not null;type:varchar(255)" json:"name"`
+	ImageURL string    `json:"image_url,omitempty"` 
 	Products  []Product      `gorm:"foreignKey:CategoryID" json:"products,omitempty"` // Has-Many relation
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -47,4 +48,5 @@ type Category struct {
 // CreateCategoryDTO maps incoming payloads for adding taxonomy
 type CreateCategoryDTO struct {
 	Name string `json:"name"`
+	ImageURL string `json:"image_url"`
 }

@@ -36,6 +36,7 @@ func (h *CategoryHandler) CreateCategory(c echo.Context) error {
 
 	newCategory := models.Category{
 		Name: dto.Name,
+		ImageURL: dto.ImageURL,
 	}
 
 	// Insert into the database
@@ -90,6 +91,9 @@ func (h *CategoryHandler) UpdateCategory(c echo.Context) error {
 
 	// 4. Update and Save
 	category.Name = dto.Name
+	if dto.ImageURL != "" {
+		category.ImageURL = dto.ImageURL
+	}
 	if err := h.DB.Save(&category).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update category"})
 	}
