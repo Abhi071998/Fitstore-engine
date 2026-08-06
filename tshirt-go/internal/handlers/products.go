@@ -74,11 +74,17 @@ func (h *ProductHandler) CreateProduct(c echo.Context) error {
 	return c.JSON(http.StatusCreated, product)
 }
 
-// GET /api/products/getAllProducts (Public)
+// GET /api/products/getAllProducts/:categoryId (Public)
 func (h *ProductHandler) GetAllProducts(c echo.Context) error {
+	categoryIDParam := c.Param("categoryId")
+	categoryID, err := strconv.ParseUint(categoryIDParam, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category ID format"})
+	}
+
 	var products []models.Product
-	// Preload Category and Sizes breakdown
-	if err := h.DB.Preload("Category").Preload("Sizes").Find(&products).Error; err != nil {
+	// Preload Category and Sizes breakdown, scoped to the requested category
+	if err := h.DB.Preload("Category").Preload("Sizes").Where("category_id = ?", categoryID).Find(&products).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch catalog products"})
 	}
 	return c.JSON(http.StatusOK, products)

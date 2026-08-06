@@ -44,8 +44,8 @@ func SetupRoutes(
 	categoryGroup := e.Group("/api/categories")
 	{
 		log.Println("📁 [ROUTES] Binding category configuration routes...")
-		// 🌐 Public: Anyone can view categories
-		categoryGroup.GET("/getAllCategories", categoryHandler.GetAllCategories)
+		// 🔒 Protected: Requires a valid Bearer token signature
+		categoryGroup.GET("/getAllCategories", categoryHandler.GetAllCategories, authRequired)
 
 		// 🔒 Protected: Requires a valid Bearer token signature
 		categoryGroup.POST("/createCategory", categoryHandler.CreateCategory, authRequired)
@@ -57,8 +57,8 @@ func SetupRoutes(
 	productGroup := e.Group("/api/products")
 	{
 		log.Println("👕 [ROUTES] Binding product core routes...")
-		// 🌐 Public: Anyone can view products
-		productGroup.GET("/getAllProducts", productHandler.GetAllProducts)
+		// 🔒 Protected: Requires a valid Bearer token signature
+		productGroup.GET("/getAllProducts/:categoryId", productHandler.GetAllProducts, authRequired)
 
 		// 🔒 Protected: Requires a valid Bearer token signature
 		productGroup.POST("/createProduct", productHandler.CreateProduct, authRequired)

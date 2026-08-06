@@ -11,6 +11,10 @@ main
 *.so
 *.dylib
 
+# 🔄 Air live-reload artifacts
+tmp/
+build-errors.log
+
 # 📂 IDE / OS System Specific Files
 .idea/
 .vscode/
