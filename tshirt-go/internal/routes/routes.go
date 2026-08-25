@@ -6,6 +6,7 @@ import (
 
 	"tshirt-store/internal/handlers"
 	"tshirt-store/internal/middleware" // Import your custom middleware package
+	"tshirt-store/internal/orders"
 
 	"github.com/labstack/echo/v4"
 )
@@ -16,6 +17,7 @@ func SetupRoutes(
 	authHandler *handlers.AuthHandler,
 	productHandler *handlers.ProductHandler,
 	categoryHandler *handlers.CategoryHandler,
+	orderHandler *orders.Handler,
 	jwtSecret []byte, // Injected secret key for token verification
 ) {
 	log.Println("🗺️  [ROUTES] Registering application route mappings...")
@@ -64,6 +66,17 @@ func SetupRoutes(
 		productGroup.POST("/createProduct", productHandler.CreateProduct, authRequired)
 		productGroup.PUT("/updateProduct/:id", productHandler.UpdateProduct, authRequired)
 		productGroup.DELETE("/deleteProduct/:id", productHandler.DeleteProduct, authRequired)
+	}
+
+	// 5. Order Routing Blueprint (reads fitstore-core's customer order tables)
+	orderGroup := e.Group("/api/orders")
+	{
+		log.Println("📦 [ROUTES] Binding order review routes...")
+		// 🔒 Protected: Requires a valid Bearer token signature
+		orderGroup.GET("/pending", orderHandler.GetPendingOrders, authRequired)
+		orderGroup.PUT("/:id/approve", orderHandler.ApproveOrder, authRequired)
+		orderGroup.PUT("/:id/reject", orderHandler.RejectOrder, authRequired)
+		orderGroup.POST("/bulk-approve", orderHandler.BulkApproveOrders, authRequired)
 	}
 
 	log.Println("✅ [ROUTES] All backend network endpoints mapped successfully.")
