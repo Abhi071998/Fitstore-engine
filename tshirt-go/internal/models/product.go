@@ -12,6 +12,7 @@ type ProductSize struct {
 	ProductID uint           `gorm:"not null;index" json:"product_id"`
 	Size      string         `gorm:"type:varchar(10);not null" json:"size"` // e.g., "S", "M", "L", "XL", "XXL"
 	Stock     int            `gorm:"not null;default:0" json:"stock"`
+	Product   *Product       `gorm:"foreignKey:ProductID;references:ID" json:"product,omitempty"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`

@@ -25,7 +25,7 @@ type CustomerPendingOrders struct {
 func (h *Handler) GetPendingOrders(c echo.Context) error {
 	var pending []Order
 	if err := h.DB.
-		Preload("Items").
+		Preload("Items.ProductSize.Product.Category").
 		Where("status = ?", "pending_approval").
 		Order("cust_user_id, created_at").
 		Find(&pending).Error; err != nil {
@@ -78,7 +78,7 @@ func (h *Handler) decideOrder(orderID uint64, newStatus string, comment *string)
 	}
 
 	var order Order
-	if err := h.DB.Preload("Items").First(&order, orderID).Error; err != nil {
+	if err := h.DB.Preload("Items.ProductSize.Product.Category").First(&order, orderID).Error; err != nil {
 		return nil, err
 	}
 	return &order, nil

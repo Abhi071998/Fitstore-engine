@@ -4,7 +4,11 @@
 // passed to AutoMigrate here — schema ownership stays with fitstore-core.
 package orders
 
-import "time"
+import (
+	"time"
+
+	"tshirt-store/internal/models"
+)
 
 // Order mirrors the Prisma `orders` model.
 // NOTE: AdminComment maps to an `admin_comment` (nullable text) column that
@@ -41,6 +45,10 @@ type OrderItem struct {
 	Status        string    `gorm:"column:status" json:"status"`
 	CreatedAt     time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt     time.Time `gorm:"column:updated_at" json:"updated_at"`
+
+	// ProductSize (and its Product) live in the shared catalog tables this
+	// service already owns — joined in for display, not part of fitstore-core's schema.
+	ProductSize *models.ProductSize `gorm:"foreignKey:ProductSizeID;references:ID" json:"product_size,omitempty"`
 }
 
 func (OrderItem) TableName() string { return "order_items" }
