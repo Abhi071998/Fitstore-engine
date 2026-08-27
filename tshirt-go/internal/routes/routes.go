@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"tshirt-store/internal/content"
 	"tshirt-store/internal/handlers"
 	"tshirt-store/internal/middleware" // Import your custom middleware package
 	"tshirt-store/internal/orders"
@@ -18,6 +19,7 @@ func SetupRoutes(
 	productHandler *handlers.ProductHandler,
 	categoryHandler *handlers.CategoryHandler,
 	orderHandler *orders.Handler,
+	contentHandler *content.Handler,
 	jwtSecret []byte, // Injected secret key for token verification
 ) {
 	log.Println("🗺️  [ROUTES] Registering application route mappings...")
@@ -77,6 +79,18 @@ func SetupRoutes(
 		orderGroup.PUT("/:id/approve", orderHandler.ApproveOrder, authRequired)
 		orderGroup.PUT("/:id/reject", orderHandler.RejectOrder, authRequired)
 		orderGroup.POST("/bulk-approve", orderHandler.BulkApproveOrders, authRequired)
+	}
+
+	// 6. Admin Content Routing Blueprint (editable page copy/images, e.g. About Us)
+	contentGroup := e.Group("/api/content")
+	{
+		log.Println("🖼️  [ROUTES] Binding admin content routes...")
+		// 🌐 Public: Frontend pages read this to render themselves
+		contentGroup.GET("/about-us", contentHandler.GetAboutUs)
+
+		// 🔒 Protected: Requires a valid Bearer token signature
+		contentGroup.POST("/about-us", contentHandler.CreateAboutUs, authRequired)
+		contentGroup.PUT("/about-us", contentHandler.UpdateAboutUs, authRequired)
 	}
 
 	log.Println("✅ [ROUTES] All backend network endpoints mapped successfully.")
