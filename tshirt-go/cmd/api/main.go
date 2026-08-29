@@ -26,7 +26,7 @@ func main() {
 
 	// 3. Sync structural tables via ORM AutoMigration
 	log.Println("🔄 [MIGRATION] Scanning entity mappings for auto-migration...")
-	err := database.AutoMigrate(&models.User{}, &models.Product{}, &models.ProductSize{}, &models.Category{}, &content.AdminContent{})
+	err := database.AutoMigrate(&models.User{}, &models.Product{}, &models.ProductSize{}, &models.Category{}, &models.CategoryType{}, &content.AdminContent{})
 	if err != nil {
 		log.Fatalf("🚨 [MIGRATION] Schema sync failed! System shutting down. Trace: %v", err)
 	}
@@ -63,11 +63,12 @@ func main() {
 	}
 	productHandler := &handlers.ProductHandler{DB: database}
 	categoryHandler := &handlers.CategoryHandler{DB: database}
+	categoryTypeHandler := &handlers.CategoryTypeHandler{DB: database}
 	orderHandler := &orders.Handler{DB: database}
 	contentHandler := &content.Handler{DB: database}
 
 	// 6. 🔥 CALL THE ROUTE MAPPER (This completely replaces the old route code)
-	routes.SetupRoutes(e, authHandler, productHandler, categoryHandler, orderHandler, contentHandler, []byte(cfg.JWTSecret))
+	routes.SetupRoutes(e, authHandler, productHandler, categoryHandler, categoryTypeHandler, orderHandler, contentHandler, []byte(cfg.JWTSecret))
 
 	// 7. Bind listener loops onto target network port parameters
 	log.Printf("🏁 [MAIN] System baseline startup complete. Opening listeners at address: 0.0.0.0:%s", cfg.Port)

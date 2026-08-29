@@ -50,3 +50,18 @@ type CreateCategoryDTO struct {
 	Name string `json:"name"`
 	ImageURL string `json:"image_url"`
 }
+
+// CategoryType represents the fixed, admin-managed list of category names
+// offered as a dropdown when creating a Category (e.g., "T-shirt", "Shoes")
+type CategoryType struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	Name      string         `gorm:"unique;not null;type:varchar(255)" json:"name"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// CreateCategoryTypeDTO maps incoming payloads for adding a category type
+type CreateCategoryTypeDTO struct {
+	Name string `json:"name"`
+}

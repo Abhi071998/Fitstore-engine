@@ -18,6 +18,7 @@ func SetupRoutes(
 	authHandler *handlers.AuthHandler,
 	productHandler *handlers.ProductHandler,
 	categoryHandler *handlers.CategoryHandler,
+	categoryTypeHandler *handlers.CategoryTypeHandler,
 	orderHandler *orders.Handler,
 	contentHandler *content.Handler,
 	jwtSecret []byte, // Injected secret key for token verification
@@ -55,6 +56,19 @@ func SetupRoutes(
 		categoryGroup.POST("/createCategory", categoryHandler.CreateCategory, authRequired)
 		categoryGroup.PUT("/updateCategory/:id", categoryHandler.UpdateCategory, authRequired)
 		categoryGroup.DELETE("/deleteCategory/:id", categoryHandler.DeleteCategory, authRequired)
+	}
+
+	// 3b. Category Type Routing Blueprint (fixed dropdown list for category creation)
+	categoryTypeGroup := e.Group("/api/categoryTypes")
+	{
+		log.Println("📁 [ROUTES] Binding category type configuration routes...")
+		// 🔒 Protected: Requires a valid Bearer token signature
+		categoryTypeGroup.GET("/getAllCategoryTypes", categoryTypeHandler.GetAllCategoryTypes, authRequired)
+
+		// 🔒 Protected: Requires a valid Bearer token signature
+		categoryTypeGroup.POST("/createCategoryType", categoryTypeHandler.CreateCategoryType, authRequired)
+		categoryTypeGroup.PUT("/updateCategoryType/:id", categoryTypeHandler.UpdateCategoryType, authRequired)
+		categoryTypeGroup.DELETE("/deleteCategoryType/:id", categoryTypeHandler.DeleteCategoryType, authRequired)
 	}
 
 	// 4. Product Routing Blueprint
