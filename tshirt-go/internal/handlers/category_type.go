@@ -84,11 +84,22 @@ func (h *CategoryTypeHandler) UpdateCategoryType(c echo.Context) error {
 	}
 
 	categoryType.Name = dto.Name
-	if err := h.DB.Save(&categoryType).Error; err != nil {
+
+	// Rename the type and cascade the new name to every linked Category atomically
+	err = h.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&categoryType).Error; err != nil {
+			return err
+		}
+		return tx.Model(&models.Category{}).
+			Where("category_type_id = ?", categoryTypeID).
+			Update("name", categoryType.Name).Error
+	})
+	if err != nil {
+		log.Printf("🚨 [CATEGORY-TYPE-HANDLER] Cascade update failed: %v", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update category type"})
 	}
 
-	log.Printf("✏️ [CATEGORY-TYPE-HANDLER] Category type ID #%d updated to '%s'", categoryType.ID, categoryType.Name)
+	log.Printf("✏️ [CATEGORY-TYPE-HANDLER] Category type ID #%d updated to '%s' (cascaded to linked categories)", categoryType.ID, categoryType.Name)
 	return c.JSON(http.StatusOK, categoryType)
 }
 

@@ -36,19 +36,22 @@ type LoginDTO struct {
 
 // Category represents the top-level grouping (e.g., "T-shirt", "Shoes")
 type Category struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	Name      string         `gorm:"unique;not null;type:varchar(255)" json:"name"`
-	ImageURL string    `json:"image_url,omitempty"` 
-	Products  []Product      `gorm:"foreignKey:CategoryID" json:"products,omitempty"` // Has-Many relation
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID             uint           `gorm:"primaryKey" json:"id"`
+	Name           string         `gorm:"unique;not null;type:varchar(255)" json:"name"`
+	ImageURL       string         `json:"image_url,omitempty"`
+	CategoryTypeID *uint          `gorm:"index" json:"category_type_id,omitempty"`
+	CategoryType   *CategoryType  `gorm:"foreignKey:CategoryTypeID" json:"category_type,omitempty"` // Belongs-To relation; Name mirrors CategoryType.Name when set
+	Products       []Product      `gorm:"foreignKey:CategoryID" json:"products,omitempty"`           // Has-Many relation
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // CreateCategoryDTO maps incoming payloads for adding taxonomy
 type CreateCategoryDTO struct {
-	Name string `json:"name"`
-	ImageURL string `json:"image_url"`
+	Name           string `json:"name"`
+	ImageURL       string `json:"image_url"`
+	CategoryTypeID uint   `json:"category_type_id"`
 }
 
 // CategoryType represents the fixed, admin-managed list of category names
