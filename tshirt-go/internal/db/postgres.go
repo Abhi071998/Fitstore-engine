@@ -12,7 +12,14 @@ import (
 func ConnectORM(databaseURL string) *gorm.DB {
 	log.Println("🔌 [DATABASE] Attempting handshake initialization with PostgreSQL instance...")
 
-	dialector := postgres.Open(databaseURL)
+	// PreferSimpleProtocol disables pgx's automatic prepared-statement caching.
+	// Without this, a connection that prepared "SELECT * FROM categories ..."
+	// before a deploy's AutoMigrate altered that table's columns will fail with
+	// "cached plan must not change result type" on its next query.
+	dialector := postgres.New(postgres.Config{
+		DSN:                  databaseURL,
+		PreferSimpleProtocol: true,
+	})
 
 	db, err := gorm.Open(dialector, &gorm.Config{
 		// Info level prints *every single raw SQL query* your backend fires straight into your terminal

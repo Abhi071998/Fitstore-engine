@@ -1,14 +1,23 @@
 package orders
 
 import (
+	"errors"
 	"net/http"
 	"sort"
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
+
+// undefinedTable reports whether err is Postgres error 42P01 (relation does
+// not exist) — expected while fitstore-core hasn't deployed its order tables yet.
+func undefinedTable(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == "42P01"
+}
 
 type Handler struct {
 	DB *gorm.DB
@@ -29,6 +38,9 @@ func (h *Handler) GetPendingOrders(c echo.Context) error {
 		Where("status = ?", "pending_approval").
 		Order("cust_user_id, created_at").
 		Find(&pending).Error; err != nil {
+		if undefinedTable(err) {
+			return c.JSON(http.StatusOK, []CustomerPendingOrders{})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch pending orders"})
 	}
 
