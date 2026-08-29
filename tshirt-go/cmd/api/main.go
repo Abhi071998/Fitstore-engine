@@ -7,7 +7,6 @@ import (
 	"tshirt-store/internal/content"
 	"tshirt-store/internal/db"
 	"tshirt-store/internal/handlers"
-	"tshirt-store/internal/models"
 	"tshirt-store/internal/orders"
 	"tshirt-store/internal/routes"
 
@@ -24,13 +23,8 @@ func main() {
 	// 2. Initialize the GORM framework connection pool
 	database := db.ConnectORM(cfg.DatabaseURL)
 
-	// 3. Sync structural tables via ORM AutoMigration
-	log.Println("🔄 [MIGRATION] Scanning entity mappings for auto-migration...")
-	err := database.AutoMigrate(&models.User{}, &models.Product{}, &models.ProductSize{}, &models.Category{}, &models.CategoryType{}, &content.AdminContent{})
-	if err != nil {
-		log.Fatalf("🚨 [MIGRATION] Schema sync failed! System shutting down. Trace: %v", err)
-	}
-	log.Println("✅ [MIGRATION] Target database tables synchronized.")
+	// 3. Schema is owned entirely by fitstore-core's Prisma migrations now
+	// (see docs/SCHEMA.md) — this service only reads/writes existing tables.
 
 	// 4. Spin up the Echo framework router
 	log.Println("🤖 [ROUTER] Assembling Echo framework engine...")
