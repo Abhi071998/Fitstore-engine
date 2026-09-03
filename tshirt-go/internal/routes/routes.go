@@ -105,6 +105,13 @@ func SetupRoutes(
 		// 🔒 Protected: Requires a valid Bearer token signature
 		contentGroup.POST("/about-us", contentHandler.CreateAboutUs, authRequired)
 		contentGroup.PUT("/about-us", contentHandler.UpdateAboutUs, authRequired)
+
+		// 🌐 Public: Frontend homepage reads this to render the hero banner
+		contentGroup.GET("/hero", contentHandler.GetHero)
+
+		// 🔒 Protected: Requires a valid Bearer token signature
+		contentGroup.POST("/hero", contentHandler.CreateHero, authRequired)
+		contentGroup.PUT("/hero", contentHandler.UpdateHero, authRequired)
 	}
 
 	log.Println("✅ [ROUTES] All backend network endpoints mapped successfully.")

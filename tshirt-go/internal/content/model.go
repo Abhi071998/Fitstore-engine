@@ -37,3 +37,38 @@ type AboutUsDTO struct {
 	AboutUsVisitUs     string `json:"about_us_visit_us"`
 	AboutUsEmail       string `json:"about_us_email"`
 }
+
+// HeroContent stores the admin-editable homepage hero banner (tag line,
+// two-tone heading, description, image, and the two call-to-action links).
+// Only one row is expected to ever exist.
+type HeroContent struct {
+	ID                      uint      `gorm:"primaryKey" json:"id"`
+	HeroTag                 string    `gorm:"type:varchar(255)" json:"hero_tag"`
+	HeroHeadingLine1        string    `gorm:"type:varchar(255)" json:"hero_heading_line1"`
+	HeroHeadingHighlight    string    `gorm:"type:varchar(255)" json:"hero_heading_highlight"`
+	HeroHeadingLine2        string    `gorm:"type:varchar(255)" json:"hero_heading_line2"`
+	HeroDescription         string    `gorm:"type:text" json:"hero_description"`
+	HeroImage               string    `gorm:"type:text" json:"hero_image"`
+	HeroPrimaryButtonText   string    `gorm:"type:varchar(255)" json:"hero_primary_button_text"`
+	HeroPrimaryButtonLink   string    `gorm:"type:text" json:"hero_primary_button_link"`
+	HeroSecondaryButtonText string    `gorm:"type:varchar(255)" json:"hero_secondary_button_text"`
+	HeroSecondaryButtonLink string    `gorm:"type:text" json:"hero_secondary_button_link"`
+	CreatedAt               time.Time `json:"created_at"`
+	UpdatedAt               time.Time `json:"updated_at"`
+}
+
+func (HeroContent) TableName() string { return "hero_content" }
+
+// HeroDTO carries the editable fields for create/update requests.
+type HeroDTO struct {
+	HeroTag                 string `json:"hero_tag"`
+	HeroHeadingLine1        string `json:"hero_heading_line1"`
+	HeroHeadingHighlight    string `json:"hero_heading_highlight"`
+	HeroHeadingLine2        string `json:"hero_heading_line2"`
+	HeroDescription         string `json:"hero_description"`
+	HeroImage               string `json:"hero_image"`
+	HeroPrimaryButtonText   string `json:"hero_primary_button_text"`
+	HeroPrimaryButtonLink   string `json:"hero_primary_button_link"`
+	HeroSecondaryButtonText string `json:"hero_secondary_button_text"`
+	HeroSecondaryButtonLink string `json:"hero_secondary_button_link"`
+}

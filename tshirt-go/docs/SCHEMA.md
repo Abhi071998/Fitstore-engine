@@ -158,7 +158,45 @@ No `DeletedAt` (hard rows only). No relations. Only one row is ever expected to 
 
 ---
 
-## 7. `Order` — ⚠️ NOT owned by this service
+## 7. `HeroContent` — ⚠️ table does not exist yet, needs a Prisma migration
+**Defined in:** `internal/content/model.go`
+**Table:** `hero_content` — explicit `TableName()` override
+
+> Added on the Go side following the exact same one-row-content pattern as
+> `AdminContent`. **Since `AutoMigrate` was removed, this table will not be
+> created automatically.** Someone needs to add a matching Prisma migration
+> on the fitstore-core side (see the column list below) before
+> `GET/POST/PUT /api/content/hero` will work — until then, every call will
+> fail with `relation "hero_content" does not exist`, the same failure mode
+> `orders` had before fitstore-core deployed its tables.
+
+| Field | Go type | GORM tag |
+|---|---|---|
+| ID | `uint` | `primaryKey` |
+| HeroTag | `string` | `type:varchar(255)` |
+| HeroHeadingLine1 | `string` | `type:varchar(255)` |
+| HeroHeadingHighlight | `string` | `type:varchar(255)` |
+| HeroHeadingLine2 | `string` | `type:varchar(255)` |
+| HeroDescription | `string` | `type:text` |
+| HeroImage | `string` | `type:text` |
+| HeroPrimaryButtonText | `string` | `type:varchar(255)` |
+| HeroPrimaryButtonLink | `string` | `type:text` |
+| HeroSecondaryButtonText | `string` | `type:varchar(255)` |
+| HeroSecondaryButtonLink | `string` | `type:text` |
+| CreatedAt | `time.Time` | *(none)* |
+| UpdatedAt | `time.Time` | *(none)* |
+
+No `DeletedAt` (hard rows only). No relations. Only one row is ever expected
+to exist (the homepage hero banner). `HeroHeadingLine1`/`HeroHeadingHighlight`/
+`HeroHeadingLine2` are separate fields — not one string — because the
+frontend styles the middle phrase differently (italic, accent color) from
+the two plain lines around it, e.g. "Style is" / "a way to say" / "who you are."
+
+**DTO:** `HeroDTO` mirrors every field above except `ID`/timestamps — same file.
+
+---
+
+## 8. `Order` — ⚠️ NOT owned by this service
 **Defined in:** `internal/orders/model.go`
 **Table:** `orders` — explicit `TableName()` override
 
@@ -185,7 +223,7 @@ No `DeletedAt` (hard rows only). No relations. Only one row is ever expected to 
 
 ---
 
-## 8. `OrderItem` — ⚠️ NOT owned by this service
+## 9. `OrderItem` — ⚠️ NOT owned by this service
 **Defined in:** `internal/orders/model.go`
 **Table:** `order_items` — explicit `TableName()` override
 
@@ -229,5 +267,6 @@ before the corresponding GORM struct/handler change here will work.
 | `Product` | `products` | Prisma (fitstore-core) |
 | `ProductSize` | `product_sizes` | Prisma (fitstore-core) |
 | `AdminContent` | `admin_content` | Prisma (fitstore-core) |
+| `HeroContent` | `hero_content` | Prisma (fitstore-core) — ⚠️ table not created yet |
 | `Order` | `orders` | Prisma (fitstore-core) |
 | `OrderItem` | `order_items` | Prisma (fitstore-core) |
